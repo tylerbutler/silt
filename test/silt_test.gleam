@@ -3,8 +3,8 @@ import gleam/json
 import gleam/list
 import gleam/string
 import silt
-import silt/historian
 import silt/object.{Commit, Person, TreeEntry}
+import silt/rest
 import startest
 import startest/expect
 
@@ -13,8 +13,8 @@ pub fn main() -> Nil {
 }
 
 /// A `fetch` backed by an in-memory dict, for exercising the recursive
-/// Historian shapes without a real store.
-fn dict_fetch(objects: dict.Dict(String, String)) -> historian.Fetch {
+/// REST response shapes without a real store.
+fn dict_fetch(objects: dict.Dict(String, String)) -> rest.Fetch {
   fn(sha) {
     case dict.get(objects, sha) {
       Ok(body) -> Ok(body)
@@ -92,13 +92,13 @@ pub fn decode_ref_test() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Historian response shapes
+// REST response shapes
 // ─────────────────────────────────────────────────────────────────────────────
 
 pub fn normalize_ref_qualifies_bare_refs_test() {
-  historian.normalize_ref("heads/main")
+  rest.normalize_ref("heads/main")
   |> expect.to_equal("refs/heads/main")
-  historian.normalize_ref("refs/heads/main")
+  rest.normalize_ref("refs/heads/main")
   |> expect.to_equal("refs/heads/main")
 }
 
@@ -160,7 +160,7 @@ pub fn commit_history_walks_parents_test() {
   let c2 =
     "{\"tree\":\"t2\",\"parents\":[\"c1\"],\"author\":{\"name\":\"Ada\"}}"
   let fetch = dict_fetch(dict.from_list([#("c1", c1), #("c2", c2)]))
-  historian.commit_history_response("http://h", "t", "c2", 10, fetch)
+  rest.commit_history_response("http://h", "t", "c2", 10, fetch)
   |> list.length
   |> expect.to_equal(2)
 }
@@ -170,7 +170,7 @@ pub fn commit_history_respects_count_test() {
   let c2 =
     "{\"tree\":\"t2\",\"parents\":[\"c1\"],\"author\":{\"name\":\"Ada\"}}"
   let fetch = dict_fetch(dict.from_list([#("c1", c1), #("c2", c2)]))
-  historian.commit_history_response("http://h", "t", "c2", 1, fetch)
+  rest.commit_history_response("http://h", "t", "c2", 1, fetch)
   |> list.length
   |> expect.to_equal(1)
 }

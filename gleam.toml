@@ -1,6 +1,6 @@
 name = "silt"
 version = "0.1.0"
-description = "Fluid Framework git-object primitives: content-addressed blob/tree/commit SHA-1 ids and Routerlicious Historian response shapes"
+description = "Fluid Framework git-object primitives: content-addressed blob/tree/commit SHA-1 ids and git-compatible content-addressable storage REST response shapes"
 licences = ["MIT"]
 repository = { type = "github", user = "tylerbutler", repo = "silt" }
 gleam = ">= 1.7.0"

@@ -38,10 +38,10 @@ pub type Commit {
 
 /// Compute the content-addressed id for an object body of the given `kind`.
 ///
-/// `kind` is the plural Historian form: `"blobs"`, `"trees"`, or `"commits"`.
+/// `kind` is the plural REST form: `"blobs"`, `"trees"`, or `"commits"`.
 /// Blobs use git-canonical framing (`"blob " <len> \0 <content>`) so ids match
 /// real git object ids; trees and commits hash their serialized body directly
-/// (the Routerlicious/Historian scheme). Any other kind is an `Error(Nil)`.
+/// (the direct-body scheme). Any other kind is an `Error(Nil)`.
 pub fn object_id(kind: String, body: String) -> Result(String, Nil) {
   case kind {
     "blobs" -> blob_sha(body)

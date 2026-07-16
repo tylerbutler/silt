@@ -1,11 +1,11 @@
-//// Routerlicious-compatible **Historian** response shapes: the JSON and URL
-//// builders that expose git objects as document summaries/snapshots.
+//// REST response shapes that expose git objects as git-compatible
+//// content-addressable storage: the JSON and URL builders for blob, tree,
+//// commit, ref, and commit-history responses.
 ////
 //// Like `silt/object`, this module owns no persistence. Where a response must
 //// walk child objects (recursive trees, commit history) the caller supplies a
-//// `fetch` function — `fn(sha) -> Result(body, Nil)` — closing over its own
-//// store and tenant. Consolidated from `floodgate/git` and Levee's
-//// `git_controller` — see Levee ADR-006.
+//// `fetch` function — `fn(sha) -> Result(String, Nil)` — closing over its own
+//// store and tenant.
 
 import gleam/bit_array
 import gleam/json
@@ -13,12 +13,12 @@ import gleam/list
 import gleam/string
 import silt/object.{type Commit, type Person, type TreeEntry, TreeEntry}
 
-/// Resolve an object body by SHA. Supplied by the caller so Historian shaping
+/// Resolve an object body by SHA. Supplied by the caller so response shaping
 /// stays backend-agnostic.
 pub type Fetch =
   fn(String) -> Result(String, Nil)
 
-/// Build the Historian response for a stored object of `kind`
+/// Build the REST response for a stored object of `kind`
 /// (`"blobs"` | `"trees"` | `"commits"`). Recursive trees use `fetch` to walk
 /// children.
 pub fn object_response(
