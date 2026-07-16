@@ -12,6 +12,6 @@
   "dependencies": {
     "@fontsource-variable/archivo": "^5.1.0",
     "@fontsource/spline-sans-mono": "^5.1.0",
-    "astro": "^5.6.1"
+    "astro": "^6.4.6"
   }
 }
