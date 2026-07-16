@@ -57,22 +57,27 @@ pub fn sha1(body: BitArray) -> String {
   |> string.lowercase
 }
 
+/// Git-canonical SHA-1 id for a blob's raw content bytes
+/// (`sha1("blob " <len> \0 <content>)`) — a real git object id. Use this when
+/// you already hold the content bytes; use `object_id("blobs", ...)` when you
+/// hold a `{content, encoding}` JSON body.
+pub fn blob_id(content: BitArray) -> String {
+  let header_text =
+    "blob " <> int.to_string(bit_array.byte_size(content)) <> "\u{0000}"
+  let header = bit_array.from_string(header_text)
+  sha1(bit_array.concat([header, content]))
+}
+
 /// Git-canonical SHA-1 of a blob body (a `{content, encoding}` JSON payload).
 fn blob_sha(body: String) -> Result(String, Nil) {
   use #(content, encoding) <- result.try(decode_blob(body))
   use bytes <- result.try(blob_content(content, encoding))
-  let header_text =
-    "blob " <> int.to_string(bit_array.byte_size(bytes)) <> "\u{0000}"
-  let header = bit_array.from_string(header_text)
-  Ok(sha1(bit_array.concat([header, bytes])))
+  Ok(blob_id(bytes))
 }
 
 /// Decode the raw bytes carried by a blob body given its declared encoding
 /// (`"utf-8"` or `"base64"`).
-pub fn blob_content(
-  content: String,
-  encoding: String,
-) -> Result(BitArray, Nil) {
+pub fn blob_content(content: String, encoding: String) -> Result(BitArray, Nil) {
   case encoding {
     "base64" -> bit_array.base64_decode(content)
     "utf-8" -> Ok(bit_array.from_string(content))

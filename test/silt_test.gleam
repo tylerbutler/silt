@@ -33,6 +33,12 @@ pub fn blob_object_id_matches_git_test() {
   |> expect.to_equal(Ok("b6fc4c620b67d95f953a5c1c1230aaab5db5a1b0"))
 }
 
+pub fn blob_id_from_bytes_matches_git_test() {
+  // Same real git object id, computed straight from the content bytes.
+  object.blob_id(<<"hello">>)
+  |> expect.to_equal("b6fc4c620b67d95f953a5c1c1230aaab5db5a1b0")
+}
+
 pub fn blob_object_id_base64_matches_utf8_test() {
   // "hello" base64-encoded frames to the same bytes, so the same id.
   silt.object_id("blobs", "{\"content\":\"aGVsbG8=\",\"encoding\":\"base64\"}")
