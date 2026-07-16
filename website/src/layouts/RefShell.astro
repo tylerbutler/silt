@@ -1,0 +1,180 @@
+---
+import Base from "./Base.astro";
+import Code from "../components/Code.astro";
+
+interface TocItem {
+  id: string;
+  label: string;
+  kind: "type" | "fn";
+}
+interface Props {
+  module: string;
+  summary: string;
+  importLine: string;
+  toc: TocItem[];
+  title?: string;
+}
+const { module, summary, importLine, toc, title } = Astro.props;
+---
+
+<Base title={title ?? `${module} — silt reference`} description={summary}>
+  <section class="ref-hero">
+    <div class="ref-hero__in shell">
+      <p class="ref-crumb"><a href="/">silt</a> / reference</p>
+      <h1 class="ref-title">{module}</h1>
+      <p class="lede ref-summary">{summary}</p>
+      <div class="ref-import">
+        <Code code={importLine} lang="gleam" label="import" />
+      </div>
+    </div>
+  </section>
+
+  <hr class="strata-divider" />
+
+  <div class="ref-body shell">
+    <aside class="ref-toc" aria-label="Symbols in this module">
+      <p class="ref-toc__head">On this page</p>
+      <nav>
+        <ul>
+          {
+            toc.map((t) => (
+              <li>
+                <a href={`#${t.id}`}>
+                  <span class={`ref-toc__k ref-toc__k--${t.kind}`}>{t.kind}</span>
+                  <span class="ref-toc__l">{t.label}</span>
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </nav>
+    </aside>
+    <div class="ref-content">
+      <slot />
+    </div>
+  </div>
+</Base>
+
+<style>
+  .ref-hero {
+    padding-block: clamp(2.5rem, 7vh, 4.5rem) clamp(1.5rem, 4vh, 2.5rem);
+  }
+  .ref-crumb {
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    color: var(--ink-faint);
+    margin-bottom: 1rem;
+  }
+  .ref-crumb a {
+    color: var(--ink-muted);
+  }
+  .ref-title {
+    font-family: var(--font-mono);
+    font-size: clamp(2rem, 5vw, 3.25rem);
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+  }
+  .ref-summary {
+    margin-top: 1.1rem;
+    max-width: 60ch;
+  }
+  .ref-import {
+    margin-top: 1.75rem;
+    max-width: 32rem;
+  }
+
+  .ref-body {
+    display: grid;
+    grid-template-columns: 15rem 1fr;
+    gap: clamp(2rem, 5vw, 4rem);
+    padding-top: clamp(2rem, 5vh, 3rem);
+  }
+  .ref-toc {
+    position: sticky;
+    top: 5rem;
+    align-self: start;
+    max-height: calc(100vh - 6rem);
+    overflow-y: auto;
+  }
+  .ref-toc__head {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 0.9rem;
+  }
+  .ref-toc ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+  .ref-toc a {
+    display: flex;
+    align-items: baseline;
+    gap: 0.55rem;
+    padding: 0.35rem 0.5rem;
+    border-radius: var(--r-inset);
+    color: var(--ink-muted);
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+  }
+  .ref-toc a:hover {
+    background: var(--surface);
+    color: var(--ink);
+    text-decoration: none;
+  }
+  .ref-toc__k {
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    flex-shrink: 0;
+    width: 2.4em;
+  }
+  .ref-toc__k--type {
+    color: var(--aqua);
+  }
+  .ref-toc__k--fn {
+    color: var(--silt);
+  }
+
+  .ref-content {
+    min-width: 0;
+  }
+  .ref-content :global(.sym-group) {
+    margin-bottom: clamp(2rem, 5vh, 3.5rem);
+  }
+  .ref-content :global(.sym-group__title) {
+    font-size: 1.05rem;
+    font-family: var(--font-mono);
+    font-weight: 500;
+    color: var(--ink-faint);
+    letter-spacing: 0.02em;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--hairline);
+    margin-bottom: 0.5rem;
+  }
+
+  @media (max-width: 52rem) {
+    .ref-body {
+      grid-template-columns: 1fr;
+    }
+    .ref-toc {
+      position: static;
+      max-height: none;
+      border: 1px solid var(--hairline-soft);
+      border-radius: var(--r-panel);
+      padding: 1rem 1.1rem;
+      background: var(--surface);
+    }
+    .ref-toc ul {
+      flex-direction: row;
+      flex-wrap: wrap;
+      gap: 0.4rem 0.9rem;
+    }
+  }
+</style>

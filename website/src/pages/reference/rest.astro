@@ -1,0 +1,152 @@
+---
+import RefShell from "../../layouts/RefShell.astro";
+import Symbol from "../../components/Symbol.astro";
+
+const toc = [
+  { id: "fetch", label: "Fetch", kind: "type" as const },
+  { id: "object-response", label: "object_response", kind: "fn" as const },
+  { id: "commit-details", label: "commit_details_response", kind: "fn" as const },
+  { id: "commit-history", label: "commit_history_response", kind: "fn" as const },
+  { id: "ref-response", label: "ref_response", kind: "fn" as const },
+  { id: "normalize-ref", label: "normalize_ref", kind: "fn" as const },
+];
+---
+
+<RefShell
+  module="silt/rest"
+  summary="The response shapes that expose git objects as git-compatible content-addressable storage over a REST API: JSON and URL builders for blob, tree, commit, ref, and commit-history responses. Owns no store — it takes a fetch when it must walk children."
+  importLine="import silt/rest"
+  toc={toc}
+>
+  <section class="sym-group">
+    <h2 class="sym-group__title">The fetch contract</h2>
+
+    <Symbol
+      id="fetch"
+      name="Fetch"
+      kind="type"
+      reexport
+      signature={`pub type Fetch =
+  fn(String) -> Result(String, Nil)`}
+    >
+      <p>
+        Resolve an object body by its SHA. You supply it, closing over your own
+        store and tenant, so response shaping stays backend-agnostic — silt
+        never touches persistence itself.
+      </p>
+      <p>
+        Only the responses that walk children — recursive trees and commit
+        history — ever call it. Flat responses ignore it.
+      </p>
+    </Symbol>
+  </section>
+
+  <section class="sym-group">
+    <h2 class="sym-group__title">Object responses</h2>
+
+    <Symbol
+      id="object-response"
+      name="object_response"
+      kind="fn"
+      reexport
+      signature={`pub fn object_response(
+  base_url: String,
+  tenant: String,
+  kind: String,
+  sha: String,
+  body: String,
+  recursive: Bool,
+  fetch: Fetch,
+) -> Result(json.Json, Nil)`}
+    >
+      <p>
+        Build the REST response for a stored object of <code>kind</code>
+        (<code>"blobs"</code>, <code>"trees"</code>, or <code>"commits"</code>).
+        Each response carries the object's <code>sha</code>, a canonical
+        <code>url</code>, and the decoded fields for its kind.
+      </p>
+      <p>
+        When <code>recursive</code> is <code>True</code>, a tree response walks
+        its children through <a href="#fetch"><code>fetch</code></a> and flattens
+        them with prefixed paths. An unknown <code>kind</code> is an
+        <code>Error(Nil)</code>.
+      </p>
+    </Symbol>
+
+    <Symbol
+      id="commit-details"
+      name="commit_details_response"
+      kind="fn"
+      signature={`pub fn commit_details_response(
+  base_url: String,
+  tenant: String,
+  sha: String,
+  body: String,
+) -> Result(json.Json, Nil)`}
+    >
+      <p>
+        Build the detailed commit response for a single commit body — the
+        nested <code>commit</code> object (author, committer, message, tree) the
+        history endpoint returns per entry.
+      </p>
+    </Symbol>
+
+    <Symbol
+      id="commit-history"
+      name="commit_history_response"
+      kind="fn"
+      reexport={false}
+      signature={`pub fn commit_history_response(
+  base_url: String,
+  tenant: String,
+  sha: String,
+  count: Int,
+  fetch: Fetch,
+) -> List(json.Json)`}
+    >
+      <p>
+        Walk first parents from <code>sha</code>, up to <code>count</code>
+        commits, resolving each through <a href="#fetch"><code>fetch</code></a> —
+        the commit-history endpoint. Stops early at the root or when a body can't
+        be resolved.
+      </p>
+    </Symbol>
+  </section>
+
+  <section class="sym-group">
+    <h2 class="sym-group__title">Refs</h2>
+
+    <Symbol
+      id="ref-response"
+      name="ref_response"
+      kind="fn"
+      reexport
+      signature={`pub fn ref_response(
+  base_url: String,
+  tenant: String,
+  ref: String,
+  sha: String,
+) -> json.Json`}
+    >
+      <p>
+        Build a ref response for <code>ref</code> pointing at commit <code
+          >sha</code
+        > — the ref name, its <code>url</code>, and the target commit object.
+        The <code>ref</code> is normalized to its fully-qualified form first.
+      </p>
+    </Symbol>
+
+    <Symbol
+      id="normalize-ref"
+      name="normalize_ref"
+      kind="fn"
+      signature={`pub fn normalize_ref(ref: String) -> String`}
+    >
+      <p>
+        Normalize a ref to its fully-qualified <code>refs/…</code> form — a bare
+        <code>"heads/main"</code> becomes <code>"refs/heads/main"</code>, and an
+        already-qualified ref is returned unchanged.
+      </p>
+    </Symbol>
+  </section>
+</RefShell>

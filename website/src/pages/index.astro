@@ -1,0 +1,444 @@
+---
+import Base from "../layouts/Base.astro";
+import Code from "../components/Code.astro";
+import Strata from "../components/Strata.astro";
+import CoreSample from "../components/CoreSample.astro";
+
+const idExample = `import silt
+
+// git-canonical SHA-1 — matches \`git hash-object\`
+let assert Ok(sha) =
+  silt.object_id("blobs", "{\\"content\\":\\"hello\\"}")
+// -> "b6fc4c62…5db5a1b0"`;
+
+const fetchExample = `// Walk children (recursive trees, history) via a
+// fetch that closes over your own store.
+let fetch = fn(sha) { my_store.get(tenant, sha) }
+
+let response =
+  silt.object_response(
+    base_url, tenant, "trees", sha, body, True, fetch,
+  )`;
+
+const usageExample = `import silt
+import silt/object
+import silt/rest
+
+// 1 · content -> id
+let assert Ok(sha) = silt.object_id("commits", body)
+
+// 2 · read a stored body back into a typed value
+let assert Ok(commit) = object.decode_commit(body)
+
+// 3 · shape it for the REST API
+let assert Ok(json) =
+  rest.object_response(base_url, tenant, "commits", sha, body, False, fetch)`;
+
+const installExample = `[dependencies]
+silt = { git = "https://github.com/tylerbutler/silt", ref = "main" }`;
+---
+
+<Base>
+  <!-- ── Hero ─────────────────────────────────────────────────────── -->
+  <section class="hero">
+    <div class="hero__strata" aria-hidden="true">
+      <Strata />
+    </div>
+    <div class="hero__in shell">
+      <div class="hero__copy">
+        <p class="hero__word">silt</p>
+        <h1 class="hero__title">
+          Byte-exact git object ids,<br /><span>in pure Gleam.</span>
+        </h1>
+        <p class="lede hero__lede">
+          silt turns content into content-addressed <strong>blob</strong>,
+          <strong>tree</strong>, and <strong>commit</strong> objects whose SHA-1
+          ids match real git — exactly. It also shapes them into the responses
+          for a git-compatible content-addressable storage REST API. Pure logic;
+          it owns no store.
+        </p>
+        <div class="hero__cta">
+          <a class="btn" href="#install">Add to gleam.toml</a>
+          <a class="btn btn--ghost" href="/reference/object">Read the API →</a>
+        </div>
+        <p class="hero__repro">
+          <span>reproduce it →</span>
+          <code>printf 'blob 5\0hello' | sha1sum</code>
+        </p>
+      </div>
+      <div class="hero__vis">
+        <CoreSample />
+      </div>
+    </div>
+  </section>
+
+  <!-- ── What it is ───────────────────────────────────────────────── -->
+  <section class="band shell">
+    <div class="what">
+      <div class="what__head">
+        <h2 class="section-h">Content settles into a name.</h2>
+      </div>
+      <div class="what__body prose">
+        <p>
+          silt names an object by its contents. Hash the bytes, get an id; the
+          same bytes always produce the same id — so the id is both the object's
+          <em>name</em> and a <em>check</em> on its integrity. Nothing is addressed
+          by where it lives, only by what it holds.
+        </p>
+        <p>
+          That is the whole discipline of content-addressed storage, and it only
+          holds if every stack computes the id the same way, down to the byte.
+          silt exists to be that one exact computation — shared, not
+          re-derived.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <hr class="strata-divider" />
+
+  <!-- ── The two invariants ───────────────────────────────────────── -->
+  <section class="band shell">
+    <div class="spine-head">
+      <h2 class="section-h">Two guarantees hold everything up.</h2>
+    </div>
+
+    <article class="invariant reveal">
+      <div class="invariant__lead">
+        <h3 class="sub-h">Ids that match real git</h3>
+        <p class="prose">
+          Blobs are framed the way git frames them —
+          <code class="inline">blob &lt;length&gt;\0&lt;content&gt;</code> — then
+          hashed with SHA-1, so <code class="inline">object_id("blobs", …)</code>
+          equals what <code class="inline">git hash-object</code> gives you.
+          Trees and commits hash their serialized body directly. Change nothing
+          about the framing and every stack agrees on every id.
+        </p>
+      </div>
+      <div class="invariant__code">
+        <Code code={idExample} lang="gleam" label="git-canonical id" />
+      </div>
+    </article>
+
+    <article class="invariant invariant--flip reveal">
+      <div class="invariant__lead">
+        <h3 class="sub-h">No store, by design</h3>
+        <p class="prose">
+          silt is pure logic over content. It holds nothing, persists nothing,
+          and never reaches for a database. When a response has to walk child
+          objects — a recursive tree, a line of commit history — you hand it a
+          <code class="inline">fetch</code> that closes over your store. silt
+          shapes; you keep the bytes.
+        </p>
+      </div>
+      <div class="invariant__code">
+        <Code code={fetchExample} lang="gleam" label="caller-supplied fetch" />
+      </div>
+    </article>
+  </section>
+
+  <hr class="strata-divider" />
+
+  <!-- ── The surface ──────────────────────────────────────────────── -->
+  <section class="band shell">
+    <div class="surface-grid">
+      <div class="surface-intro">
+        <h2 class="section-h">The surface, in three moves.</h2>
+        <p class="prose">
+          Compute an id, decode a stored body into a typed value, shape it for
+          the REST API. Full signatures live on the reference pages.
+        </p>
+        <div class="surface-links">
+          <a class="surface-link" href="/reference/object">
+            <span class="surface-link__mod">silt/object</span>
+            <span class="surface-link__desc"
+              >ids, hashing &amp; the <code class="inline">decode_*</code> body decoders</span
+            >
+            <span class="surface-link__go" aria-hidden="true">→</span>
+          </a>
+          <a class="surface-link" href="/reference/rest">
+            <span class="surface-link__mod">silt/rest</span>
+            <span class="surface-link__desc"
+              >blob / tree / commit / ref &amp; history response shapes</span
+            >
+            <span class="surface-link__go" aria-hidden="true">→</span>
+          </a>
+        </div>
+      </div>
+      <div class="surface-code">
+        <Code code={usageExample} lang="gleam" label="silt in three calls" />
+      </div>
+    </div>
+  </section>
+
+  <hr class="strata-divider" />
+
+  <!-- ── Install ──────────────────────────────────────────────────── -->
+  <section class="band shell" id="install">
+    <div class="install-grid">
+      <div class="install-copy">
+        <h2 class="section-h">Add it to your project.</h2>
+        <p class="prose">
+          silt ships as a pinned git dependency — it isn't published to Hex.
+          Point <code class="inline">gleam.toml</code> at the repository and a ref:
+        </p>
+        <ul class="install-notes">
+          <li>
+            Pin <code class="inline">ref</code> to a commit or tag for reproducible
+            builds.
+          </li>
+          <li>
+            <code class="inline">gleam add</code> doesn't manage git dependencies
+            — edit <code class="inline">gleam.toml</code>, then run
+            <code class="inline">gleam deps download</code>.
+          </li>
+          <li>Pure Gleam, Erlang target. No FFI, no native build step.</li>
+        </ul>
+      </div>
+      <div class="install-block">
+        <Code code={installExample} lang="toml" label="gleam.toml" />
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  /* ── Hero ─────────────────────────────────────────────────────────── */
+  .hero {
+    position: relative;
+    overflow: hidden;
+    padding-block: clamp(3rem, 8vh, 6rem) clamp(4rem, 12vh, 8rem);
+  }
+  .hero__strata {
+    position: absolute;
+    inset: auto 0 0 0;
+    height: 52%;
+    pointer-events: none;
+    -webkit-mask-image: linear-gradient(to bottom, transparent, #000 55%);
+    mask-image: linear-gradient(to bottom, transparent, #000 55%);
+  }
+  .hero__in {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: clamp(2rem, 5vw, 4.5rem);
+    align-items: center;
+  }
+  .hero__word {
+    font-size: clamp(3.5rem, 8vw, 6rem);
+    font-weight: 800;
+    font-stretch: 125%;
+    letter-spacing: -0.03em;
+    line-height: 0.9;
+    color: var(--ink);
+    margin-bottom: 0.5rem;
+  }
+  .hero__title {
+    font-size: clamp(1.5rem, 3.2vw, 2.35rem);
+    font-weight: 600;
+    font-stretch: 105%;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    line-height: 1.15;
+  }
+  .hero__title span {
+    color: var(--silt);
+  }
+  .hero__lede {
+    margin-top: 1.5rem;
+    max-width: 40ch;
+  }
+  .hero__lede strong {
+    color: var(--ink);
+    font-weight: 600;
+  }
+  .hero__cta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.85rem;
+    margin-top: 2rem;
+  }
+  .hero__repro {
+    position: relative;
+    margin-top: 1.75rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--ink-muted);
+  }
+  .hero__repro code {
+    color: var(--ink-muted);
+    background: var(--surface-2);
+    border: 1px solid var(--hairline-soft);
+    border-radius: var(--r-inset);
+    padding: 0.25rem 0.55rem;
+  }
+  .hero__vis {
+    min-width: 0;
+  }
+
+  /* ── Bands ────────────────────────────────────────────────────────── */
+  .band {
+    padding-block: var(--section-gap);
+  }
+  .strata-divider + .band {
+    padding-top: calc(var(--section-gap) - 1rem);
+  }
+
+  .what {
+    display: grid;
+    grid-template-columns: 1fr 1.1fr;
+    gap: clamp(1.5rem, 5vw, 4rem);
+    align-items: start;
+  }
+  .what__body p + p {
+    margin-top: 1.1rem;
+  }
+  .what__body em {
+    color: var(--aqua);
+    font-style: normal;
+  }
+  .prose {
+    color: var(--ink-muted);
+  }
+
+  /* ── Invariants ───────────────────────────────────────────────────── */
+  .spine-head {
+    max-width: 24ch;
+    margin-bottom: clamp(2.5rem, 6vh, 4rem);
+  }
+  .invariant {
+    display: grid;
+    grid-template-columns: 0.9fr 1.1fr;
+    gap: clamp(1.5rem, 4vw, 3.5rem);
+    align-items: center;
+    padding-block: clamp(2rem, 5vh, 3.25rem);
+  }
+  .invariant + .invariant {
+    border-top: 1px solid var(--hairline-soft);
+  }
+  .invariant__lead h3 {
+    color: var(--ink);
+    margin-bottom: 1rem;
+  }
+  .invariant__code {
+    min-width: 0;
+  }
+
+  /* ── The surface ──────────────────────────────────────────────────── */
+  .surface-grid {
+    display: grid;
+    grid-template-columns: 0.9fr 1.1fr;
+    gap: clamp(1.5rem, 4vw, 3.5rem);
+    align-items: start;
+  }
+  .surface-intro .prose {
+    margin-top: 1rem;
+  }
+  .surface-links {
+    margin-top: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  .surface-link {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 0.15rem 1rem;
+    padding: 1rem 1.15rem;
+    border: 1px solid var(--hairline-soft);
+    border-radius: var(--r-panel);
+    background: var(--surface);
+    color: var(--ink);
+    transition:
+      border-color 0.18s var(--ease-out-expo),
+      background 0.18s var(--ease-out-expo),
+      transform 0.18s var(--ease-out-expo);
+  }
+  .surface-link:hover {
+    text-decoration: none;
+    border-color: color-mix(in oklch, var(--aqua) 55%, var(--hairline));
+    background: var(--surface-2);
+    transform: translateY(-2px);
+  }
+  .surface-link__mod {
+    font-family: var(--font-mono);
+    font-size: 1rem;
+    color: var(--aqua);
+  }
+  .surface-link__desc {
+    grid-column: 1;
+    font-size: 0.9rem;
+    color: var(--ink-muted);
+  }
+  .surface-link__go {
+    grid-row: 1 / 3;
+    grid-column: 2;
+    color: var(--ink-faint);
+    font-size: 1.2rem;
+    transition: transform 0.18s var(--ease-out-expo);
+  }
+  .surface-link:hover .surface-link__go {
+    color: var(--aqua);
+    transform: translateX(3px);
+  }
+
+  /* ── Install ──────────────────────────────────────────────────────── */
+  .install-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.05fr;
+    gap: clamp(1.5rem, 4vw, 3.5rem);
+    align-items: center;
+  }
+  .install-copy .prose {
+    margin-top: 1rem;
+  }
+  .install-notes {
+    margin: 1.5rem 0 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+  }
+  .install-notes li {
+    position: relative;
+    padding-left: 1.5rem;
+    color: var(--ink-muted);
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+  .install-notes li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.62em;
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+    background: var(--silt);
+  }
+
+  /* ── Responsive ───────────────────────────────────────────────────── */
+  @media (max-width: 60rem) {
+    .hero__in,
+    .what,
+    .invariant,
+    .invariant--flip,
+    .surface-grid,
+    .install-grid {
+      grid-template-columns: 1fr;
+    }
+    .hero__vis {
+      order: 2;
+      max-width: 30rem;
+    }
+    .invariant {
+      gap: 1.5rem;
+    }
+  }
+</style>

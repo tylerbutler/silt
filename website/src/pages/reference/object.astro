@@ -1,0 +1,209 @@
+---
+import RefShell from "../../layouts/RefShell.astro";
+import Symbol from "../../components/Symbol.astro";
+
+const toc = [
+  { id: "person", label: "Person", kind: "type" as const },
+  { id: "tree-entry", label: "TreeEntry", kind: "type" as const },
+  { id: "commit", label: "Commit", kind: "type" as const },
+  { id: "object-id", label: "object_id", kind: "fn" as const },
+  { id: "sha1", label: "sha1", kind: "fn" as const },
+  { id: "blob-content", label: "blob_content", kind: "fn" as const },
+  { id: "decode-blob", label: "decode_blob", kind: "fn" as const },
+  { id: "decode-tree", label: "decode_tree", kind: "fn" as const },
+  { id: "decode-commit", label: "decode_commit", kind: "fn" as const },
+  { id: "decode-ref", label: "decode_ref", kind: "fn" as const },
+];
+---
+
+<RefShell
+  module="silt/object"
+  summary="The git object model: content-addressed blob, tree, and commit values with git-canonical SHA-1 ids, and the decoders that read their JSON bodies back into typed values. Pure logic over content — it owns no store."
+  importLine="import silt/object"
+  toc={toc}
+>
+  <section class="sym-group">
+    <h2 class="sym-group__title">Types</h2>
+
+    <Symbol
+      id="person"
+      name="Person"
+      kind="type"
+      reexport
+      signature={`pub type Person {
+  Person(name: String, email: String, date: String)
+}`}
+    >
+      <p>A commit author or committer identity — the <code>name</code>, <code
+          >email</code
+        >, and <code>date</code> carried on a commit.</p>
+    </Symbol>
+
+    <Symbol
+      id="tree-entry"
+      name="TreeEntry"
+      kind="type"
+      reexport
+      signature={`pub type TreeEntry {
+  TreeEntry(
+    path: String,
+    mode: String,
+    kind: String,
+    size: Int,
+    sha: String,
+  )
+}`}
+    >
+      <p>
+        A single entry within a tree object. <code>kind</code> is <code
+          >"blob"</code
+        > or <code>"tree"</code>; <code>mode</code> is the git file mode (default
+        <code>"100644"</code>); <code>sha</code> points at the child object.
+      </p>
+    </Symbol>
+
+    <Symbol
+      id="commit"
+      name="Commit"
+      kind="type"
+      reexport
+      signature={`pub type Commit {
+  Commit(
+    tree: String,
+    parents: List(String),
+    message: String,
+    author: Person,
+    committer: Person,
+  )
+}`}
+    >
+      <p>
+        A decoded commit object: the <code>tree</code> it snapshots, its <code
+          >parents</code
+        >, the <code>message</code>, and the <code>author</code> /
+        <code>committer</code> identities.
+      </p>
+    </Symbol>
+  </section>
+
+  <section class="sym-group">
+    <h2 class="sym-group__title">Ids &amp; hashing</h2>
+
+    <Symbol
+      id="object-id"
+      name="object_id"
+      kind="fn"
+      reexport
+      signature={`pub fn object_id(
+  kind: String,
+  body: String,
+) -> Result(String, Nil)`}
+    >
+      <p>
+        Compute the content-addressed id for an object <code>body</code> of the
+        given <code>kind</code> — the plural REST form <code>"blobs"</code>,
+        <code>"trees"</code>, or <code>"commits"</code>.
+      </p>
+      <p>
+        Blobs use git-canonical framing (<code>"blob " &lt;len&gt; \0 &lt;content&gt;"</code
+        >) so the id matches a real git object id. Trees and commits hash their
+        serialized body directly. Any other <code>kind</code> is an
+        <code>Error(Nil)</code>.
+      </p>
+    </Symbol>
+
+    <Symbol
+      id="sha1"
+      name="sha1"
+      kind="fn"
+      signature={`pub fn sha1(body: BitArray) -> String`}
+    >
+      <p>
+        The lowercase hex SHA-1 of the given bytes. The primitive under <code
+          >object_id</code
+        >, exposed for callers that already hold framed bytes.
+      </p>
+    </Symbol>
+
+    <Symbol
+      id="blob-content"
+      name="blob_content"
+      kind="fn"
+      signature={`pub fn blob_content(
+  content: String,
+  encoding: String,
+) -> Result(BitArray, Nil)`}
+    >
+      <p>
+        Decode the raw bytes carried by a blob body given its declared <code
+          >encoding</code
+        > — <code>"utf-8"</code> or <code>"base64"</code>. Any other encoding is
+        an <code>Error(Nil)</code>.
+      </p>
+    </Symbol>
+  </section>
+
+  <section class="sym-group">
+    <h2 class="sym-group__title">Decoders</h2>
+
+    <Symbol
+      id="decode-blob"
+      name="decode_blob"
+      kind="fn"
+      signature={`pub fn decode_blob(
+  body: String,
+) -> Result(#(String, String), Nil)`}
+    >
+      <p>
+        Decode a blob body into its <code>#(content, encoding)</code>. A missing
+        <code>encoding</code> field defaults to <code>"utf-8"</code>.
+      </p>
+    </Symbol>
+
+    <Symbol
+      id="decode-tree"
+      name="decode_tree"
+      kind="fn"
+      signature={`pub fn decode_tree(
+  body: String,
+) -> Result(List(TreeEntry), Nil)`}
+    >
+      <p>
+        Decode a tree body into its <a href="#tree-entry"><code>TreeEntry</code></a
+        > list. Per-entry defaults: <code>mode</code> <code>"100644"</code>,
+        <code>type</code> <code>"blob"</code>, <code>size</code> <code>0</code>.
+      </p>
+    </Symbol>
+
+    <Symbol
+      id="decode-commit"
+      name="decode_commit"
+      kind="fn"
+      signature={`pub fn decode_commit(
+  body: String,
+) -> Result(Commit, Nil)`}
+    >
+      <p>
+        Decode a commit body into a <a href="#commit"><code>Commit</code></a>.
+        <code>parents</code> defaults to <code>[]</code>, <code>message</code> to
+        <code>""</code>, and a missing <code>committer</code> falls back to the
+        <code>author</code>.
+      </p>
+    </Symbol>
+
+    <Symbol
+      id="decode-ref"
+      name="decode_ref"
+      kind="fn"
+      reexport
+      signature={`pub fn decode_ref(
+  body: String,
+) -> Result(#(String, String), Nil)`}
+    >
+      <p>
+        Decode a ref-update body into its <code>#(ref, sha)</code> — the ref
+        name and the commit it should point at.
+      </p>
+    </Symbol>
+  </section>
+</RefShell>

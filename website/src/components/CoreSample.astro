@@ -1,0 +1,144 @@
+---
+// The deposition visual: a body of content settles through the hashing
+// pipeline into one stable id. Each layer is labeled (not distinguished by
+// hue alone). The final SHA-1 resolves from scrambled hex on load.
+const layers = [
+  { color: "var(--strata-1)", tag: "content", val: '"hello"' },
+  { color: "var(--strata-2)", tag: "encoding", val: "utf-8" },
+  { color: "var(--strata-3)", tag: "frame", val: "blob 5\\0" },
+  { color: "var(--strata-4)", tag: "bytes", val: "68 65 6c 6c 6f" },
+  { color: "var(--strata-5)", tag: "sha-1", val: "compress" },
+];
+const hash = "b6fc4c620b67d95f953a5c1c1230aaab5db5a1b0";
+---
+
+<figure class="core reveal">
+  <figcaption class="core__head">
+    <span class="core__kind">object_id("blobs", …)</span>
+    <span class="core__note">git-canonical</span>
+  </figcaption>
+
+  <div class="core__in" aria-hidden="true">
+    {`{ "content": "hello", "encoding": "utf-8" }`}
+  </div>
+
+  <ol class="core__layers" aria-label="Hashing pipeline, top to bottom">
+    {
+      layers.map((l, i) => (
+        <li class="core__layer" style={`--c:${l.color};--i:${i}`}>
+          <span class="core__tag">{l.tag}</span>
+          <span class="core__val">{l.val}</span>
+        </li>
+      ))
+    }
+  </ol>
+
+  <div class="core__out">
+    <span class="core__out-label">sha-1</span>
+    <code class="core__hash" data-hash={hash}>{hash}</code>
+  </div>
+</figure>
+
+<style>
+  .core {
+    margin: 0;
+    background: var(--surface);
+    border: 1px solid var(--hairline-soft);
+    border-radius: var(--r-panel);
+    padding: 1rem;
+    box-shadow: 0 24px 60px -30px oklch(0 0 0 / 0.6);
+  }
+  .core__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--ink-muted);
+    padding-bottom: 0.85rem;
+    border-bottom: 1px solid var(--hairline-soft);
+  }
+  .core__kind {
+    color: var(--aqua);
+  }
+  .core__note {
+    color: var(--ink-faint);
+    letter-spacing: 0.04em;
+  }
+  .core__in {
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    color: var(--ink);
+    padding: 0.9rem 0.25rem 1.1rem;
+    text-align: center;
+  }
+  .core__layers {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .core__layer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.6rem 0.9rem;
+    border-radius: var(--r-inset);
+    background: color-mix(in oklch, var(--c) 34%, var(--surface-2));
+  }
+  .core__tag {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+  .core__val {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--ink-muted);
+  }
+  .core__out {
+    margin-top: 0.75rem;
+    padding: 0.85rem;
+    border-radius: var(--r-inset);
+    background: var(--bg-deep);
+    border: 1px solid color-mix(in oklch, var(--silt) 40%, var(--hairline));
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .core__out-label {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--silt);
+    flex-shrink: 0;
+  }
+  .core__hash {
+    font-size: 0.78rem;
+    color: var(--ink);
+    word-break: break-all;
+    line-height: 1.4;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .js .core__layer {
+      opacity: 0;
+      transform: translateY(14px);
+      animation: layer-settle 0.7s var(--ease-out-expo) forwards;
+      animation-delay: calc(var(--i) * 110ms + 350ms);
+    }
+  }
+  @keyframes layer-settle {
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+</style>
