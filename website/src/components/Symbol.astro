@@ -1,0 +1,131 @@
+---
+import { Code as Shiki } from "astro:components";
+import { gleamTheme } from "../lib/gleamTheme";
+
+interface Props {
+  id: string;
+  name: string;
+  kind: "type" | "fn";
+  signature: string;
+  reexport?: boolean;
+}
+const { id, name, kind, signature, reexport } = Astro.props;
+---
+
+<article id={id} class="sym reveal">
+  <div class="sym__bar">
+    <span class={`sym__kind sym__kind--${kind}`}>{kind}</span>
+    <h3 class="sym__name">{name}</h3>
+    {
+      reexport && (
+        <span class="sym__re">
+          also on <code>silt</code>
+        </span>
+      )
+    }
+    <a class="sym__anchor" href={`#${id}`} aria-label={`Permalink to ${name}`}
+      >#</a
+    >
+  </div>
+  <div class="sym__sig">
+    <Shiki code={signature} lang="gleam" theme={gleamTheme} />
+  </div>
+  <div class="sym__doc prose">
+    <slot />
+  </div>
+</article>
+
+<style>
+  .sym {
+    padding-block: clamp(1.5rem, 4vh, 2.25rem);
+    scroll-margin-top: 5.5rem;
+  }
+  .sym + .sym {
+    border-top: 1px solid var(--hairline-soft);
+  }
+  .sym__bar {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    margin-bottom: 0.9rem;
+  }
+  .sym__kind {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 0.2rem 0.45rem;
+    border-radius: var(--r-inset);
+    flex-shrink: 0;
+    position: relative;
+    top: -0.15em;
+  }
+  .sym__kind--type {
+    color: var(--aqua);
+    background: color-mix(in oklch, var(--aqua) 16%, transparent);
+  }
+  .sym__kind--fn {
+    color: var(--silt);
+    background: color-mix(in oklch, var(--silt) 16%, transparent);
+  }
+  .sym__name {
+    font-family: var(--font-mono);
+    font-size: clamp(1.15rem, 2vw, 1.4rem);
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+  }
+  .sym__re {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--ink-faint);
+  }
+  .sym__re code {
+    color: var(--ink-muted);
+  }
+  .sym__anchor {
+    margin-left: auto;
+    color: var(--ink-faint);
+    font-family: var(--font-mono);
+    opacity: 0;
+    transition: opacity 0.18s var(--ease-out-expo);
+  }
+  .sym:hover .sym__anchor,
+  .sym__anchor:focus-visible {
+    opacity: 1;
+  }
+  .sym__sig {
+    background: var(--surface-2);
+    border: 1px solid var(--hairline-soft);
+    border-radius: var(--r-panel);
+    overflow: hidden;
+    margin-bottom: 1.1rem;
+  }
+  .sym__sig :global(pre) {
+    margin: 0;
+    padding: 0.9rem 1.1rem;
+    overflow-x: auto;
+    font-size: 0.85rem;
+    line-height: 1.6;
+    background: transparent !important;
+  }
+  .sym__doc :global(p) {
+    max-width: var(--measure);
+  }
+  .sym__doc :global(p + p) {
+    margin-top: 0.8rem;
+  }
+  .sym__doc :global(code) {
+    font-family: var(--font-mono);
+    font-size: 0.9em;
+    color: var(--ink);
+    background: color-mix(in oklch, var(--surface-2) 80%, transparent);
+    border: 1px solid var(--hairline-soft);
+    border-radius: var(--r-inset);
+    padding: 0.08em 0.36em;
+  }
+  .sym__doc :global(strong) {
+    color: var(--ink);
+    font-weight: 600;
+  }
+</style>

@@ -1,0 +1,82 @@
+---
+// Ambient sediment strata: layered wavy bands grading from water tones at the
+// top to silt tones at the base. Each band settles into place on load
+// (reduced-motion: appears in place). Decorative — aria-hidden.
+interface Props {
+  class?: string;
+}
+const { class: className } = Astro.props;
+
+const W = 1200;
+const H = 460;
+
+type Band = { color: string; top: number; h: number; amp: number; op: number };
+const bands: Band[] = [
+  { color: "var(--strata-1)", top: 150, h: 46, amp: 14, op: 0.28 },
+  { color: "var(--strata-2)", top: 196, h: 44, amp: 20, op: 0.34 },
+  { color: "var(--strata-3)", top: 240, h: 42, amp: 12, op: 0.4 },
+  { color: "var(--strata-4)", top: 282, h: 46, amp: 22, op: 0.5 },
+  { color: "var(--strata-5)", top: 328, h: 52, amp: 16, op: 0.62 },
+  { color: "var(--strata-6)", top: 380, h: 90, amp: 24, op: 0.72 },
+];
+
+// Build a band as a wavy top edge closing down to a flat bottom.
+function bandPath(top: number, h: number, amp: number, phase: number): string {
+  const steps = 6;
+  const seg = W / steps;
+  let d = `M 0 ${top + Math.sin(phase) * amp}`;
+  for (let i = 1; i <= steps; i++) {
+    const x = seg * i;
+    const y = top + Math.sin(phase + i * 0.9) * amp;
+    const cx = x - seg / 2;
+    const cy = top + Math.sin(phase + (i - 0.5) * 0.9) * amp;
+    d += ` Q ${cx} ${cy} ${x} ${y}`;
+  }
+  d += ` L ${W} ${top + h + 40} L 0 ${top + h + 40} Z`;
+  return d;
+}
+---
+
+<svg
+  class={`strata ${className ?? ""}`}
+  viewBox={`0 0 ${W} ${H}`}
+  preserveAspectRatio="none"
+  aria-hidden="true"
+  focusable="false"
+>
+  {
+    bands.map((b, i) => (
+      <path
+        d={bandPath(b.top, b.h, b.amp, i * 1.7)}
+        fill={b.color}
+        opacity={b.op}
+        style={`--i:${i};--op:${b.op}`}
+      />
+    ))
+  }
+</svg>
+
+<style>
+  .strata {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+  .strata path {
+    transform-box: view-box;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .js .strata path {
+      opacity: 0;
+      transform: translateY(28px);
+      animation: settle 0.95s var(--ease-out-expo) forwards;
+      animation-delay: calc(var(--i) * 90ms + 120ms);
+    }
+  }
+  @keyframes settle {
+    to {
+      opacity: var(--op, 0.5);
+      transform: none;
+    }
+  }
+</style>

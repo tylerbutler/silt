@@ -1,0 +1,17 @@
+{
+  "name": "silt-website",
+  "type": "module",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "astro check"
+  },
+  "dependencies": {
+    "@fontsource-variable/archivo": "^5.1.0",
+    "@fontsource/spline-sans-mono": "^5.1.0",
+    "astro": "^5.6.1"
+  }
+}

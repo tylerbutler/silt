@@ -1,0 +1,46 @@
+---
+import { Code as Shiki } from "astro:components";
+import { gleamTheme } from "../lib/gleamTheme";
+
+interface Props {
+  code: string;
+  lang?: "gleam" | "toml" | "bash" | "json";
+  label?: string;
+}
+
+const { code, lang = "gleam", label } = Astro.props;
+---
+
+<figure class="codeblock reveal">
+  {
+    label && (
+      <figcaption class="codeblock__bar">
+        <span>{label}</span>
+        <button class="copy" type="button" aria-label="Copy code to clipboard">
+          <span class="copy__text">copy</span>
+        </button>
+      </figcaption>
+    )
+  }
+  <Shiki code={code.trim()} lang={lang} theme={gleamTheme} />
+  {
+    !label && (
+      <button
+        class="copy copy--float"
+        type="button"
+        aria-label="Copy code to clipboard"
+      >
+        <span class="copy__text">copy</span>
+      </button>
+    )
+  }
+</figure>
+
+<style>
+  .copy--float {
+    position: absolute;
+    top: 0.6rem;
+    right: 0.6rem;
+    z-index: 1;
+  }
+</style>

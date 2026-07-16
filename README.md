@@ -11,7 +11,8 @@ Where a response must walk child objects (recursive trees, commit history) the
 caller supplies a `fetch` function that closes over its own store.
 
 Pure Gleam (`gleam_stdlib`, `gleam_json`, `gleam_crypto`) — no FFI. Uses
-`gleam_crypto` for SHA-1.
+`gleam_crypto` for SHA-1. Runs on **both Gleam targets**: object ids are
+byte-identical on Erlang and JavaScript.
 
 ## Modules
 
