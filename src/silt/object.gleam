@@ -77,7 +77,10 @@ fn blob_sha(body: String) -> Result(String, Nil) {
 
 /// Decode the raw bytes carried by a blob body given its declared encoding
 /// (`"utf-8"` or `"base64"`).
-pub fn blob_content(content: String, encoding: String) -> Result(BitArray, Nil) {
+pub fn blob_content(
+  content: String,
+  encoding: String,
+) -> Result(BitArray, Nil) {
   case encoding {
     "base64" -> bit_array.base64_decode(content)
     "utf-8" -> Ok(bit_array.from_string(content))
@@ -147,6 +150,13 @@ fn tree_entry_decoder() {
 fn person_decoder() {
   use name <- decode.optional_field("name", "", decode.string)
   use email <- decode.optional_field("email", "", decode.string)
-  use date <- decode.optional_field("date", "", decode.string)
+  use date <- decode.optional_field("date", "", date_decoder())
   decode.success(Person(name, email, date))
+}
+
+/// `date` is a string in the Historian API types, but callers routinely send
+/// Unix seconds instead. Accept a number too and render it as a string, rather
+/// than failing the whole commit over a field that is only ever echoed back.
+fn date_decoder() -> decode.Decoder(String) {
+  decode.one_of(decode.string, [decode.map(decode.int, int.to_string)])
 }

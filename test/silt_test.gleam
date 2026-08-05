@@ -92,6 +92,25 @@ pub fn decode_commit_defaults_committer_to_author_test() {
   )
 }
 
+/// The Historian `ICreateCommitParams` types `date` as a string, but real
+/// callers send Unix seconds — levee's GitController passes the field through
+/// untouched, so a numeric date round-trips there. Accept either and normalise
+/// to a string rather than rejecting a commit that could have been stored.
+pub fn decode_commit_accepts_numeric_author_date_test() {
+  let body =
+    "{\"tree\":\"t1\",\"author\":{\"name\":\"Ada\",\"email\":\"a@x\",\"date\":1767225600}}"
+  object.decode_commit(body)
+  |> expect.to_equal(
+    Ok(Commit(
+      "t1",
+      [],
+      "",
+      Person("Ada", "a@x", "1767225600"),
+      Person("Ada", "a@x", "1767225600"),
+    )),
+  )
+}
+
 pub fn decode_ref_test() {
   silt.decode_ref("{\"ref\":\"refs/heads/main\",\"sha\":\"abc\"}")
   |> expect.to_equal(Ok(#("refs/heads/main", "abc")))
